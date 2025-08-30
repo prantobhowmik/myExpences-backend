@@ -1,0 +1,12 @@
+# requirements.txt for auto-reload
+fastapi
+uvicorn[standard]
+motor
+pymongo
+passlib[bcrypt]
+python-jose
+python-multipart
+python-dotenv
+authlib
+httpx
+watchdog

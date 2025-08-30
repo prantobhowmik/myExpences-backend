@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from app.utils.jwt_auth import verify_jwt_token
 from app.models.expense import ExpenseIn, ExpenseOut
 from app.db.mongo import db
 from bson import ObjectId
@@ -10,7 +11,7 @@ router = APIRouter()
 
 # Add expense and return the expense plus updated monthly summary
 @router.post("/expenses")
-async def add_expense(expense: ExpenseIn):
+async def add_expense(expense: ExpenseIn, user=Depends(verify_jwt_token)):
     doc = expense.dict()
     result = await db.expenses.insert_one(doc)
     doc["_id"] = str(result.inserted_id)
@@ -29,7 +30,7 @@ async def add_expense(expense: ExpenseIn):
     return {"expense": doc, "summary": {"year": exp_date.year, "month": exp_date.month, "total": total, "count": count}}
 
 @router.get("/expenses", response_model=List[ExpenseOut])
-async def list_expenses(month: Optional[int] = None, year: Optional[int] = None):
+async def list_expenses(month: Optional[int] = None, year: Optional[int] = None, user=Depends(verify_jwt_token)):
     query = {}
     if month and year:
         query["date"] = {"$gte": date(year, month, 1), "$lt": date(year, month + 1 if month < 12 else 1, year if month < 12 else year + 1, 1)}
@@ -41,7 +42,7 @@ async def list_expenses(month: Optional[int] = None, year: Optional[int] = None)
     return expenses
 
 @router.get("/expenses/{expense_id}", response_model=ExpenseOut)
-async def get_expense(expense_id: str):
+async def get_expense(expense_id: str, user=Depends(verify_jwt_token)):
     doc = await db.expenses.find_one({"_id": ObjectId(expense_id)})
     if not doc:
         raise HTTPException(status_code=404, detail="Expense not found")
@@ -51,7 +52,7 @@ async def get_expense(expense_id: str):
 
 # Get latest summary (current month)
 @router.get("/summary/latest")
-async def latest_summary():
+async def latest_summary(user=Depends(verify_jwt_token)):
     today = date.today()
     start = date(today.year, today.month, 1)
     end_month = today.month + 1 if today.month < 12 else 1
@@ -67,7 +68,7 @@ async def latest_summary():
 
 # Get summary for any month
 @router.get("/summary/{year}/{month}")
-async def monthly_summary(year: int, month: int):
+async def monthly_summary(year: int, month: int, user=Depends(verify_jwt_token)):
     start = date(year, month, 1)
     end_month = month + 1 if month < 12 else 1
     end_year = year if month < 12 else year + 1
