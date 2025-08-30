@@ -7,12 +7,26 @@ from datetime import date
 
 router = APIRouter()
 
-@router.post("/expenses", response_model=ExpenseOut)
+
+# Add expense and return the expense plus updated monthly summary
+@router.post("/expenses")
 async def add_expense(expense: ExpenseIn):
     doc = expense.dict()
     result = await db.expenses.insert_one(doc)
     doc["_id"] = str(result.inserted_id)
-    return doc
+    # Calculate updated summary for the month
+    exp_date = expense.date
+    start = date(exp_date.year, exp_date.month, 1)
+    end_month = exp_date.month + 1 if exp_date.month < 12 else 1
+    end_year = exp_date.year if exp_date.month < 12 else exp_date.year + 1
+    end = date(end_year, end_month, 1)
+    cursor = db.expenses.find({"date": {"$gte": start, "$lt": end}})
+    total = 0.0
+    count = 0
+    async for e in cursor:
+        total += e["amount"]
+        count += 1
+    return {"expense": doc, "summary": {"year": exp_date.year, "month": exp_date.month, "total": total, "count": count}}
 
 @router.get("/expenses", response_model=List[ExpenseOut])
 async def list_expenses(month: Optional[int] = None, year: Optional[int] = None):
@@ -34,6 +48,24 @@ async def get_expense(expense_id: str):
     doc["_id"] = str(doc["_id"])
     return doc
 
+
+# Get latest summary (current month)
+@router.get("/summary/latest")
+async def latest_summary():
+    today = date.today()
+    start = date(today.year, today.month, 1)
+    end_month = today.month + 1 if today.month < 12 else 1
+    end_year = today.year if today.month < 12 else today.year + 1
+    end = date(end_year, end_month, 1)
+    cursor = db.expenses.find({"date": {"$gte": start, "$lt": end}})
+    total = 0.0
+    count = 0
+    async for doc in cursor:
+        total += doc["amount"]
+        count += 1
+    return {"year": today.year, "month": today.month, "total": total, "count": count}
+
+# Get summary for any month
 @router.get("/summary/{year}/{month}")
 async def monthly_summary(year: int, month: int):
     start = date(year, month, 1)
