@@ -1,3 +1,4 @@
+
 version: '3.8'
 services:
   app:
@@ -5,17 +6,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - MONGODB_URL=mongodb://mongo:27017
-    depends_on:
-      - mongo
+      # Set your Atlas connection string here or via Render dashboard
+      - MONGODB_URL=your-mongodb-atlas-connection-string
     volumes:
       - ./:/app
-  mongo:
-    image: mongo:6.0
-    restart: always
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-volumes:
-  mongo_data:
