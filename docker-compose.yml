@@ -5,8 +5,7 @@ services:
     build: .
     ports:
       - "8000:8000"
-    environment:
-      # Set your Atlas connection string here or via Render dashboard
-      - MONGODB_URL=your-mongodb-atlas-connection-string
+    env_file:
+      - .env
     volumes:
       - ./:/app
