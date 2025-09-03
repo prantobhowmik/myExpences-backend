@@ -1,8 +1,8 @@
 # requirements.txt for auto-reload
 fastapi
 uvicorn[standard]
-motor
-pymongo
+motor>=3.3.0
+pymongo>=4.5.0
 passlib[bcrypt]
 python-jose
 python-multipart
