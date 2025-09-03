@@ -1,8 +1,9 @@
+email-validator
 # requirements.txt for auto-reload
+pymongo>=4.5.0
 fastapi
 uvicorn[standard]
 motor>=3.3.0
-pymongo>=4.5.0
 passlib[bcrypt]
 python-jose
 python-multipart
@@ -10,4 +11,3 @@ python-dotenv
 authlib
 httpx
 watchdog
-pymongo[srv]==3.12

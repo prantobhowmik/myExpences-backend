@@ -13,6 +13,9 @@ router = APIRouter()
 @router.post("/expenses")
 async def add_expense(expense: ExpenseIn, user=Depends(verify_jwt_token)):
     doc = expense.dict()
+    # Convert date to ISO string for MongoDB
+    if isinstance(doc["date"], date):
+        doc["date"] = doc["date"].isoformat()
     result = await db.expenses.insert_one(doc)
     doc["_id"] = str(result.inserted_id)
     # Calculate updated summary for the month
@@ -21,7 +24,7 @@ async def add_expense(expense: ExpenseIn, user=Depends(verify_jwt_token)):
     end_month = exp_date.month + 1 if exp_date.month < 12 else 1
     end_year = exp_date.year if exp_date.month < 12 else exp_date.year + 1
     end = date(end_year, end_month, 1)
-    cursor = db.expenses.find({"date": {"$gte": start, "$lt": end}})
+    cursor = db.expenses.find({"date": {"$gte": start.isoformat(), "$lt": end.isoformat()}})
     total = 0.0
     count = 0
     async for e in cursor:
