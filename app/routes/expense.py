@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, HTTPException, Depends
 from app.utils.jwt_auth import verify_jwt_token
 from app.models.expense import ExpenseIn, ExpenseOut
@@ -7,6 +8,7 @@ from typing import List, Optional
 from datetime import date
 
 router = APIRouter()
+
 
 
 # Add expense and return the expense plus updated monthly summary
@@ -32,11 +34,39 @@ async def add_expense(expense: ExpenseIn, user=Depends(verify_jwt_token)):
         count += 1
     return {"expense": doc, "summary": {"year": exp_date.year, "month": exp_date.month, "total": total, "count": count}}
 
+
+# Edit expense
+@router.put("/expenses/{expense_id}", response_model=ExpenseOut)
+async def edit_expense(expense_id: str, expense: ExpenseIn, user=Depends(verify_jwt_token)):
+    update_doc = expense.dict()
+    if isinstance(update_doc["date"], date):
+        update_doc["date"] = update_doc["date"].isoformat()
+    result = await db.expenses.update_one({"_id": ObjectId(expense_id)}, {"$set": update_doc})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    updated = await db.expenses.find_one({"_id": ObjectId(expense_id)})
+    updated["_id"] = str(updated["_id"])
+    return updated
+
+# Delete expense
+@router.delete("/expenses/{expense_id}")
+async def delete_expense(expense_id: str, user=Depends(verify_jwt_token)):
+    result = await db.expenses.delete_one({"_id": ObjectId(expense_id)})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    return {"msg": "Expense deleted"}
+
+
+# List expenses (optionally filter by month/year)
 @router.get("/expenses", response_model=List[ExpenseOut])
 async def list_expenses(month: Optional[int] = None, year: Optional[int] = None, user=Depends(verify_jwt_token)):
     query = {}
     if month and year:
-        query["date"] = {"$gte": date(year, month, 1), "$lt": date(year, month + 1 if month < 12 else 1, year if month < 12 else year + 1, 1)}
+        start = date(year, month, 1)
+        end_month = month + 1 if month < 12 else 1
+        end_year = year if month < 12 else year + 1
+        end = date(end_year, end_month, 1)
+        query["date"] = {"$gte": start.isoformat(), "$lt": end.isoformat()}
     cursor = db.expenses.find(query)
     expenses = []
     async for doc in cursor:
