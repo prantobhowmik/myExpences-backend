@@ -30,12 +30,20 @@ app = FastAPI(
 )
 
 # Allow CORS for frontend integration
+
+# allow your vite dev & any prod origin (add later)
+origins = [
+	"http://localhost:5173",
+	"http://127.0.0.1:5173",
+	# add your deployed web app origin here when you deploy the frontend
+]
+
 app.add_middleware(
 	CORSMiddleware,
-	allow_origins=["http://localhost:3000"],  # restrict to frontend dev server
+	allow_origins=origins,       # or ["*"] while developing
 	allow_credentials=True,
-	allow_methods=["*"],
-	allow_headers=["*"],
+	allow_methods=["*"],         # important for preflight
+	allow_headers=["*"],         # important for preflight
 )
 
 
