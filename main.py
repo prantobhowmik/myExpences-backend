@@ -1,8 +1,12 @@
 
 
 
-from fastapi import FastAPI
+
+import logging
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from app.utils.session_middleware import SessionTimeoutMiddleware
 from app.routes.expense import router as expense_router
 
 tags_metadata = [
@@ -19,6 +23,11 @@ tags_metadata = [
 		"description": "Endpoints for monthly and latest expense calculations."
 	}
 ]
+
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger("myExpences")
 
 app = FastAPI(
 	title="myExpences",
@@ -38,6 +47,7 @@ origins = [
 	# add your deployed web app origin here when you deploy the frontend
 ]
 
+
 app.add_middleware(
 	CORSMiddleware,
 	allow_origins=origins,       # or ["*"] while developing
@@ -46,10 +56,17 @@ app.add_middleware(
 	allow_headers=["*"],         # important for preflight
 )
 
+# Add session middleware (use a secure random key in production)
+app.add_middleware(SessionMiddleware, secret_key="mysecretkey", max_age=60*60*24)
+# Add session timeout middleware (30 min timeout)
+app.add_middleware(SessionTimeoutMiddleware, timeout_minutes=30)
+
+
 
 # Welcoming message endpoint
 @app.get("/", tags=["Welcome"])
-def welcome():
+async def welcome(request: Request):
+	logger.info(f"{request.method} {request.url.path} from {request.client.host}")
 	return {"message": "Welcome to myExpences API! Track your monthly expenses easily."}
 
 
