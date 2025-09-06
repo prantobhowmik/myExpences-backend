@@ -15,12 +15,14 @@ router = APIRouter()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+from datetime import date
+
 class UserIn(BaseModel):
 	full_name: str
 	username: str
 	email: EmailStr
 	mobile: str
-	age: int
+	date_of_birth: date
 	password: str
 
 class UserLogin(BaseModel):
