@@ -56,9 +56,9 @@ app.add_middleware(
 	allow_headers=["*"],         # important for preflight
 )
 
-# Add session middleware (use a secure random key in production)
+
+# Add session middleware (must be before SessionTimeoutMiddleware)
 app.add_middleware(SessionMiddleware, secret_key="mysecretkey", max_age=60*60*24)
-# Add session timeout middleware (30 min timeout)
 app.add_middleware(SessionTimeoutMiddleware, timeout_minutes=30)
 
 
