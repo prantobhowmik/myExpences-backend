@@ -33,8 +33,8 @@ app = FastAPI(
 
 # allow your vite dev & any prod origin (add later)
 origins = [
-	"http://localhost:5173",
-	"http://127.0.0.1:5173",
+	"http://localhost:3000",
+	"http://127.0.0.1:3000",
 	# add your deployed web app origin here when you deploy the frontend
 ]
 
