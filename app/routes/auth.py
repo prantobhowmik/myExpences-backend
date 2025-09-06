@@ -54,6 +54,9 @@ async def signup(user: UserIn):
 	user_doc = user.dict()
 	user_doc["hashed_password"] = hashed_password
 	del user_doc["password"]
+	# Convert date_of_birth to ISO string for MongoDB
+	if isinstance(user_doc["date_of_birth"], date):
+		user_doc["date_of_birth"] = user_doc["date_of_birth"].isoformat()
 	await db.users.insert_one(user_doc)
 	return {"msg": "User created successfully"}
 
