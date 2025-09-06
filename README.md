@@ -1,6 +1,6 @@
 # MyExpences Backend
 
-This is the backend for the MyExpences app, built with FastAPI and MongoDB. It provides RESTful APIs for expense management and uses JWT authentication for user login and signup.
+This is the backend for the MyExpences app, built with FastAPI and MongoDB Atlas. It provides RESTful APIs for expense management and uses JWT authentication for user login and signup. No server-side session is used; all authentication is stateless and secure with JWT.
 
 ## Features
 - User signup and login with JWT authentication
@@ -45,21 +45,25 @@ This is the backend for the MyExpences app, built with FastAPI and MongoDB. It p
 
 ---
 
+
 ### API Endpoints
 
 #### Auth
 - `POST /signup` — Register a new user
-   - Body: `{ "username": "yourname", "password": "yourpassword" }`
+   - Body: `{ "full_name": "your name", "username": "yourname", "email": "your@email.com", "mobile": "1234567890", "date_of_birth": "YYYY-MM-DD", "password": "yourpassword" }`
 - `POST /login` — Login and get JWT token
-   - Body: `{ "username": "yourname", "password": "yourpassword" }`
+   - Body: `{ "identifier": "yourname or email or mobile", "password": "yourpassword" }`
    - Response: `{ "access_token": "...", "token_type": "bearer" }`
 
 #### Expenses (All require JWT in `Authorization: Bearer <token>` header)
 - `POST /expenses` — Add a new expense
 - `GET /expenses` — List expenses (optionally filter by month/year)
 - `GET /expenses/{expense_id}` — Get a specific expense
+- `PUT /expenses/{expense_id}` — Edit an expense
+- `DELETE /expenses/{expense_id}` — Delete an expense
 - `GET /summary/latest` — Get summary for current month
 - `GET /summary/{year}/{month}` — Get summary for any month
+
 
 ### Frontend Integration
 - After login, store the JWT token in localStorage or memory.
@@ -69,10 +73,12 @@ This is the backend for the MyExpences app, built with FastAPI and MongoDB. It p
       headers: { 'Authorization': 'Bearer <token>' }
    })
    ```
+- If the backend returns 401 Unauthorized, redirect the user to the login page. JWT expiration is handled by the backend.
 - No Google OAuth or social login is required.
 
+
 ### Development Notes
-- User data is stored in-memory (`fake_users_db`) for demo purposes. Replace with a real database for production.
+- All user and expense data is stored in MongoDB Atlas. No in-memory or fake DB is used.
 - All code changes are auto-reloaded in Docker during development.
 
 ### Contributing
@@ -80,9 +86,4 @@ Pull requests and issues are welcome!
 
 ### License
 MIT
-  "amount": 100.0,
-  "description": "Groceries",
-  "date": "2025-08-30",
-  "category": "Food"
-}
 ```
