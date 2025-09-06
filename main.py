@@ -44,6 +44,8 @@ origins = [
 	"http://localhost:3000",
 	"http://127.0.0.1:3000",
 	# add your deployed web app origin here when you deploy the frontend
+	"https://my-expences-frontend-otepnjnbs-pranto-bhowmiks-projects.vercel.app",
+	"my-expences-frontend-git-main-pranto-bhowmiks-projects.vercel.app"
 ]
 
 
