@@ -5,7 +5,7 @@ from app.models.expense import ExpenseIn, ExpenseOut
 from app.db.mongo import db
 from bson import ObjectId
 from typing import List, Optional
-from datetime import date
+from datetime import date, datetime
 
 router = APIRouter()
 
@@ -16,7 +16,7 @@ router = APIRouter()
 async def add_expense(expense: ExpenseIn, user=Depends(verify_jwt_token)):
     doc = expense.dict()
     # Convert date to ISO string for MongoDB
-    if isinstance(doc["date"], date):
+    if isinstance(doc["date"], (date, datetime)):
         doc["date"] = doc["date"].isoformat()
     result = await db.expenses.insert_one(doc)
     doc["_id"] = str(result.inserted_id)
@@ -39,7 +39,7 @@ async def add_expense(expense: ExpenseIn, user=Depends(verify_jwt_token)):
 @router.put("/expenses/{expense_id}", response_model=ExpenseOut)
 async def edit_expense(expense_id: str, expense: ExpenseIn, user=Depends(verify_jwt_token)):
     update_doc = expense.dict()
-    if isinstance(update_doc["date"], date):
+    if isinstance(update_doc["date"], (date, datetime)):
         update_doc["date"] = update_doc["date"].isoformat()
     result = await db.expenses.update_one({"_id": ObjectId(expense_id)}, {"$set": update_doc})
     if result.matched_count == 0:
