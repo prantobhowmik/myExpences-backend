@@ -6,7 +6,7 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from app.utils.session_middleware import SessionTimeoutMiddleware
+from app.utils.session_middleware import session_timeout_middleware
 from app.routes.expense import router as expense_router
 
 tags_metadata = [
@@ -57,9 +57,11 @@ app.add_middleware(
 )
 
 
-# Add session middleware (must be before SessionTimeoutMiddleware)
+
+# Add session middleware first
 app.add_middleware(SessionMiddleware, secret_key="mysecretkey", max_age=60*60*24)
-app.add_middleware(SessionTimeoutMiddleware, timeout_minutes=30)
+# Add function-based session timeout middleware
+app.middleware("http")(session_timeout_middleware(timeout_minutes=30))
 
 
 
