@@ -49,11 +49,13 @@ origins = [
 ]
 
 
+
 app.add_middleware(
 	CORSMiddleware,
+	allow_origins=origins,       # allow all specified origins
 	allow_credentials=True,
- 
-	allow_headers=["*"],         # important for preflight
+	allow_methods=["*"],         # allow all HTTP methods
+	allow_headers=["*"],         # allow all headers
 )
 
 
